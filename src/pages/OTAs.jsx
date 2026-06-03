@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency, formatDate } from '@/lib/helpers';
+import { buildApiUrl } from '@/api/localClient';
 
 const STATUS_OPTIONS = ['active', 'inactive', 'pending_contract', 'suspended'];
 const STATUS_COLORS = {
@@ -93,7 +94,7 @@ export default function OTAs() {
     queryKey: ['ota-sync-logs'],
     queryFn: async () => {
       const token = localStorage.getItem('rs_auth_token');
-      const res = await fetch('/api/automations/logs?type=ota_webhook&limit=50', {
+      const res = await fetch(buildApiUrl('/api/automations/logs?type=ota_webhook&limit=50'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       try {

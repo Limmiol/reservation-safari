@@ -12,6 +12,7 @@ import {
   MapPin, Users as UsersIcon, Calendar, QrCode, Radar, ArrowRight,
 } from 'lucide-react';
 import { formatDate } from '@/lib/helpers';
+import { buildApiUrl } from '@/api/localClient';
 
 const SCAN_TYPES = [
   { value: 'pickup',        label: 'Pickup',          sub: 'driver', roles: ['driver', 'admin'] },
@@ -92,7 +93,7 @@ export default function Scanner() {
 
   const doLookup = async (ref, t) => {
     try {
-      const r = await fetch('/api/bookings/scan-lookup', {
+      const r = await fetch(buildApiUrl('/api/bookings/scan-lookup'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ ref, token: t }),
@@ -117,7 +118,7 @@ export default function Scanner() {
     if (!lookup) return;
     setSubmitting(true);
     try {
-      const r = await fetch('/api/bookings/scan', {
+      const r = await fetch(buildApiUrl('/api/bookings/scan'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({

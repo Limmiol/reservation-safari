@@ -232,7 +232,7 @@ export default function Bookings() {
       // Check availability via server-side authoritative endpoint
       try {
         const token = localStorage.getItem('rs_auth_token');
-        const avRes = await fetch('/api/check-availability', {
+        const avRes = await fetch(buildApiUrl('/api/check-availability'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ package_id: selectedPkg.id, start_date: val, end_date }),
