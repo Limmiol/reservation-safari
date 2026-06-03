@@ -1,0 +1,19 @@
+{
+  "provider": "twilio",
+  "twilio_account_sid": "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "twilio_auth_token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "twilio_from": "+15005550006",
+  "twilio_whatsapp_from": "+14155238886",
+  "at_username": "",
+  "at_api_key": "",
+  "at_sender_id": "",
+  "sms_enabled": false,
+  "whatsapp_enabled": false,
+  "wa_templates": {
+    "booking_received": "HXb5b62575e6e4ff6129ad7c8efe1f983e",
+    "booking_confirmed": "",
+    "payment_receipt": "",
+    "upcoming_reminder": ""
+  },
+  "last_updated": "2026-04-18T16:49:18.547Z"
+}

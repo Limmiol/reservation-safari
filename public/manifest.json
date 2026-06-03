@@ -1,0 +1,12 @@
+{
+  "name": "Reservation Safari",
+  "short_name": "Safari",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a3d62",
+  "icons": [
+    { "src": "/rs-logo-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/rs-logo-icon.png", "sizes": "501x501", "type": "image/png", "purpose": "any" }
+  ]
+}

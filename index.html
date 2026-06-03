@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/rs-logo-icon.svg" />
+    <link rel="alternate icon" type="image/png" href="/rs-logo-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <script>
+      (function() {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
+    <!-- SEO Meta Tags -->
+    <title>Reservation Safari - Safari Booking & Management Software for African Tour Operators</title>
+    <meta name="description" content="Reservation Safari is the #1 safari management platform for tour operators in Africa. Manage bookings, payments, vehicles, drivers, and resources. Free 14-day trial." />
+    <meta name="keywords" content="safari booking software, safari management system, safari operator software, Tanzania safari booking, Kenya safari platform, African tour operator software, safari reservation system, safari vehicle management, safari CRM" />
+    <meta name="author" content="Reservation Safari" />
+    <meta name="theme-color" content="#2e9e4f" />
+    
+    <!-- Open Graph (Social Media) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Reservation Safari - Professional Safari Management Software" />
+    <meta property="og:description" content="Manage your entire safari operation from one platform. Bookings, payments, resources, and client management for African tour operators." />
+    <meta property="og:url" content="https://reservationsafari.com" />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=630&fit=crop" />
+    <meta property="og:site_name" content="Reservation Safari" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Reservation Safari - Safari Booking & Management Software" />
+    <meta name="twitter:description" content="The complete platform for managing African safari operations. Bookings, payments, drivers, vehicles & more." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=630&fit=crop" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://reservationsafari.com" />
+    
+    <!-- Schema Markup (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Reservation Safari",
+      "description": "Professional safari management and booking software for African tour operators",
+      "url": "https://reservationsafari.com",
+      "applicationCategory": "BusinessApplication",
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "USD",
+        "price": "0",
+        "priceValidUntil": "2026-12-31"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "150"
+      }
+    }
+    </script>
+    
+    <!-- Additional Schema for Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Reservation Safari",
+      "description": "Safari booking and management software for African tour operators",
+      "url": "https://reservationsafari.com",
+      "logo": "https://base44.com/logo_v2.svg",
+      "sameAs": [
+        "https://facebook.com/reservationsafari",
+        "https://twitter.com/reservationsafari",
+        "https://linkedin.com/company/reservationsafari"
+      ]
+    }
+    </script>
+    
+    <!-- Preconnect to External Domains -->
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

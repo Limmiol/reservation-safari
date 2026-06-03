@@ -1,0 +1,13 @@
+{
+  "host": "smtp.gmail.com",
+  "port": "587",
+  "user": "kaizalivinus7@gmail.com",
+  "pass": "vret wltj czcq vscs",
+  "sender_name": "Reservation safari",
+  "company_email": "",
+  "company_phone": "",
+  "company_address": "",
+  "logo_url": "http://localhost:5173/rs-logo-full.png",
+  "accent_color": "#16a34a",
+  "payment_link": ""
+}

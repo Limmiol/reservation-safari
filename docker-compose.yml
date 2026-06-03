@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: safari-backend
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      - VITE_BASE44_APP_ID=${VITE_BASE44_APP_ID}
+      - VITE_BASE44_APP_BASE_URL=${VITE_BASE44_APP_BASE_URL}
+    volumes:
+      - ./server/uploads:/app/uploads
+      - ./server/data.json:/app/data.json
+    networks:
+      - safari-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: safari-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3001}
+      - VITE_BASE44_APP_ID=${VITE_BASE44_APP_ID}
+      - VITE_BASE44_APP_BASE_URL=${VITE_BASE44_APP_BASE_URL}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - safari-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  safari-network:
+    driver: bridge
+
+volumes:
+  uploads:

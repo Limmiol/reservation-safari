@@ -1,0 +1,52 @@
+﻿export const REGIONS = [
+  "Serengeti",
+  "Ngorongoro",
+  "Tarangire",
+  "Ngorongoro Conservation Area",
+  "Masai Mara",
+  "Lake Manyara",
+  "Selous",
+  "Ruaha",
+  "Amboseli",
+  "Zanzibar"
+];
+
+export const COUNTRIES = [
+  "All",
+  "Tanzania",
+  "Kenya",
+  "Uganda",
+  "Rwanda",
+  "Zanzibar"
+];
+
+export const ACCOMMODATION_CATEGORIES = [
+  "Luxury",
+  "Mid-range",
+  "Budget",
+  "Tented Camp",
+  "Lodge",
+  "Mobile Camp"
+];
+
+export const ACCOMMODATIONS = [
+  { id: 1, name: "Serengeti Lodge", category: "Luxury", region: "Serengeti", country: "Tanzania", price: 1200 },
+  { id: 2, name: "Ngorongoro Camp", category: "Mid-range", region: "Ngorongoro", country: "Tanzania", price: 450 },
+  { id: 3, name: "Tarangire Budget Tents", category: "Budget", region: "Tarangire", country: "Tanzania", price: 150 },
+  { id: 4, name: "Masai Mara Safari Resort", category: "Luxury", region: "Masai Mara", country: "Kenya", price: 1100 }
+];
+
+export const ACTIVITIES = [
+  { id: "game-drive", name: "Game Drive", description: "Morning and evening wildlife drives" },
+  { id: "walking-safari", name: "Walking Safari", description: "Guided bush walks with rangers" },
+  { id: "bird-watching", name: "Bird Watching", description: "Spotting endemic and migratory species" },
+  { id: "cultural-visit", name: "Cultural Visit", description: "Visit local communities and cultural experiences" }
+];
+
+export default {
+  REGIONS,
+  COUNTRIES,
+  ACCOMMODATION_CATEGORIES,
+  ACCOMMODATIONS,
+  ACTIVITIES
+};

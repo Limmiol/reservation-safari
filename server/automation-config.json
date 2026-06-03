@@ -1,0 +1,19 @@
+{
+  "booking_confirmation_auto": true,
+  "booking_cancellation_auto": true,
+  "upcoming_trip_reminder": true,
+  "invoice_auto": true,
+  "payment_receipt_auto": true,
+  "quote_auto": true,
+  "overdue_reminder": true,
+  "quote_expiry_check": true,
+  "weekly_report": true,
+  "booking_confirmation_sms": true,
+  "payment_receipt_sms": false,
+  "upcoming_trip_reminder_sms": true,
+  "overdue_reminder_sms": false,
+  "booking_confirmation_whatsapp": true,
+  "payment_receipt_whatsapp": false,
+  "upcoming_trip_reminder_whatsapp": true,
+  "last_updated": "2026-05-06T13:48:51.512Z"
+}
