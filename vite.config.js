@@ -23,4 +23,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: ['reservation-safari-frontend.onrender.com'],
+  },
 })
