@@ -21,7 +21,17 @@ async function apiPost(path, body) {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
     body: JSON.stringify(body),
   });
-  const data = await res.json();
+
+  const text = await res.text();
+  if (text.trim().startsWith('<')) throw new Error('Server returned HTML — backend may be offline');
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: res.statusText || 'Invalid JSON response' };
+    }
+  }
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
 }

@@ -16,6 +16,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import BookingInfoCard from '@/components/BookingInfoCard';
 import { formatCurrency, formatDate, generateRef } from '@/lib/helpers';
+import { safeJson } from '@/lib/safeJson';
+import { buildApiUrl } from '@/api/localClient';
 import { cn } from '@/lib/utils';
 
 const RESET = { status: 'draft' };
@@ -117,7 +119,7 @@ export default function Invoices() {
     try {
       let parsedItems = [];
       try { parsedItems = inv.items ? JSON.parse(inv.items) : []; } catch {}
-      const res = await fetch('/api/email/send-invoice', {
+      const res = await fetch(buildApiUrl('/api/email/send-invoice'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify({
@@ -126,7 +128,7 @@ export default function Invoices() {
           booking_ref: inv.booking_ref, notes: inv.notes, items: parsedItems, currency: inv.currency || 'USD',
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed to send');
       toast({ title: 'Invoice sent!', description: `Emailed to ${inv.client_email}` });
       updateMutation.mutate({ id: inv.id, data: { status: 'sent' } });

@@ -18,6 +18,8 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
 import BookingInfoCard from '@/components/BookingInfoCard';
 import { formatCurrency, formatDate, generateRef } from '@/lib/helpers';
+import { safeJson } from '@/lib/safeJson';
+import { buildApiUrl } from '@/api/localClient';
 
 const RESET = { status: 'draft' };
 
@@ -236,7 +238,7 @@ export default function Quotes() {
     if (!q.client_email) { toast({ title: 'No client email', description: 'This quote has no client email address.', variant: 'destructive' }); return; }
     setSendingEmail(q.id);
     try {
-      const res = await fetch('/api/email/send-quote', {
+      const res = await fetch(buildApiUrl('/api/email/send-quote'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify({
@@ -253,7 +255,7 @@ export default function Quotes() {
           notes: q.notes, currency: q.currency || 'USD',
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed to send');
       toast({ title: 'Quote sent!', description: `Emailed to ${q.client_email}` });
       updateMutation.mutate({ id: q.id, data: { status: 'sent' } });

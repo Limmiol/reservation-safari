@@ -3,6 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
 
 const buildApiUrl = (path) => API_BASE_URL ? `${API_BASE_URL}${path}` : path;
 
+export { buildApiUrl };
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
 export const removeToken = () => localStorage.removeItem(TOKEN_KEY);
@@ -20,7 +21,18 @@ async function apiFetch(path, options = {}) {
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
 
-  const data = await res.json().catch(() => ({ error: res.statusText }));
+  const text = await res.text();
+  let data;
+  if (!text) {
+    data = {};
+  } else {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: res.statusText || 'Invalid JSON response' };
+    }
+  }
+
   if (!res.ok) {
     const err = new Error(data.error || 'Request failed');
     err.status = res.status;
@@ -144,10 +156,19 @@ export const localClient = {
           body: formData,
         });
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
+          const text = await res.text();
+          let err = {};
+          if (text) {
+            try {
+              err = JSON.parse(text);
+            } catch {
+              err = {};
+            }
+          }
           throw new Error(err.error || 'Upload failed');
         }
-        return res.json();
+        const text = await res.text();
+        return text ? JSON.parse(text) : {};
       },
     },
   },

@@ -96,7 +96,12 @@ export default function OTAs() {
       const res = await fetch('/api/automations/logs?type=ota_webhook&limit=50', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.ok ? res.json() : [];
+      try {
+        const data = await safeJson(res);
+        return res.ok ? data : [];
+      } catch {
+        return [];
+      }
     },
   });
 

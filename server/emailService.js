@@ -11,7 +11,25 @@ let LOGO_B64 = '';
 try { LOGO_B64 = 'data:image/png;base64,' + fs.readFileSync(LOGO_PATH).toString('base64'); } catch {}
 
 function loadConfig() {
-  try { if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); } catch {}
+  try {
+    // Prefer environment variables (useful on hosts like Render)
+    if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      return {
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT || '587',
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+        sender_name: process.env.EMAIL_SENDER_NAME || (process.env.EMAIL_USER || '').split('@')[0],
+        company_email: process.env.COMPANY_EMAIL || '',
+        company_phone: process.env.COMPANY_PHONE || '',
+        company_address: process.env.COMPANY_ADDRESS || '',
+        logo_url: process.env.EMAIL_LOGO_URL || '',
+        accent_color: process.env.EMAIL_ACCENT_COLOR || '#16a34a',
+        payment_link: process.env.PAYMENT_LINK || '',
+      };
+    }
+    if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+  } catch {}
   return null;
 }
 function saveConfig(cfg) { fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2)); }
@@ -30,7 +48,19 @@ async function sendEmail({ to, subject, html, config: cfgOverride }) {
   if (!cfg || !cfg.host || !cfg.user || !cfg.pass)
     throw new Error('Email not configured. Go to Settings → Email/SMTP to set up.');
   const t = createTransporter(cfg);
-  await t.sendMail({ from: `"${cfg.sender_name || 'Reservation Safari'}" <${cfg.user}>`, to, subject, html });
+  try {
+    // Verify SMTP connection/auth early to give clearer errors in logs
+    await t.verify();
+  } catch (err) {
+    console.error('[emailService] SMTP verify failed:', err && err.message ? err.message : err);
+    throw new Error('SMTP connection/auth failed: ' + (err && err.message ? err.message : 'unknown'));
+  }
+  try {
+    await t.sendMail({ from: `"${cfg.sender_name || 'Reservation Safari'}" <${cfg.user}>`, to, subject, html });
+  } catch (err) {
+    console.error('[emailService] sendMail error:', err && err.message ? err.message : err, err && err.stack ? err.stack : '');
+    throw err;
+  }
 }
 
 // ── Formatting ────────────────────────────────────────────────────────────────

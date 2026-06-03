@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLanguage } from '@/lib/LanguageContext';
 import { translate } from '@/lib/translations';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+const buildApiUrl = (path) => API_BASE_URL ? `${API_BASE_URL}${path}` : path;
+
 const ACCENT_PRESETS = [
   { label: 'Safari Green', value: '137 72% 45%' },
   { label: 'Ocean Blue', value: '210 100% 50%' },
@@ -105,7 +108,7 @@ export default function Settings() {
   const [pesapal, setPesapal] = useState({ consumer_key: '', consumer_secret: '', environment: 'sandbox', ipn_id: '', configured: false });
   const [pesapalLoaded, setPesapalLoaded] = useState(false);
   const [pesapalSaving, setPesapalSaving] = useState(false);
-  const pesapalCallbackUrl = `${window.location.protocol}//${window.location.hostname}:3001/api/payment/callback`;
+  const pesapalCallbackUrl = `${API_BASE_URL || `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}`}/api/payment/callback`;
 
   // SMS / WhatsApp state
   const [sms, setSms] = useState({
@@ -129,8 +132,13 @@ export default function Settings() {
   // Helper: parse response safely, detect offline server
   const safeJson = async (res) => {
     const text = await res.text();
+    if (!text.trim()) return {};
     if (text.trim().startsWith('<')) throw new Error('backend_offline');
-    return JSON.parse(text);
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error('Invalid JSON response from server');
+    }
   };
 
   // Reset loaded flags whenever we leave a tab so it re-checks on return
@@ -142,7 +150,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (activeTab === 'email' && !smtpLoaded) {
-      fetch('/api/email/config', {
+      fetch(buildApiUrl('/api/email/config'), {
         headers: { Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
       })
         .then(async r => {
@@ -167,7 +175,7 @@ export default function Settings() {
   // Load PesaPal config when payments tab is opened
   useEffect(() => {
     if (activeTab === 'payments' && !pesapalLoaded) {
-      fetch('/api/payment/config', {
+      fetch(buildApiUrl('/api/payment/config'), {
         headers: { Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
       })
         .then(async r => {
@@ -193,7 +201,7 @@ export default function Settings() {
   // Load SMS config when tab opens
   useEffect(() => {
     if (activeTab === 'sms' && !smsLoaded) {
-      fetch('/api/sms/config', {
+      fetch(buildApiUrl('/api/sms/config'), {
         headers: { Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
       })
         .then(async r => {
@@ -210,7 +218,7 @@ export default function Settings() {
   const saveSms = async () => {
     setSmsSaving(true);
     try {
-      const res = await fetch('/api/sms/config', {
+      const res = await fetch(buildApiUrl('/api/sms/config'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify(sms),
@@ -233,7 +241,7 @@ export default function Settings() {
     try {
       const payload = { to: smsTestTo, channel: smsTestChannel };
       if (smsTestChannel === 'whatsapp' && smsTestTemplate) payload.templateEvent = smsTestTemplate;
-      const res = await fetch('/api/sms/test', {
+      const res = await fetch(buildApiUrl('/api/sms/test'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify(payload),
@@ -260,7 +268,7 @@ export default function Settings() {
       };
       const typed = (sms.twilio_auth_token || '').trim();
       if (typed && typed !== '••••••••') body.authToken = typed;
-      const res = await fetch('/api/sms/verify', {
+      const res = await fetch(buildApiUrl('/api/sms/verify'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify(body),
@@ -284,17 +292,21 @@ export default function Settings() {
     }
     setPesapalSaving(true);
     try {
-      const res = await fetch('/api/payment/config', {
+      const res = await fetch(buildApiUrl('/api/payment/config'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify({ consumer_key: pesapal.consumer_key, consumer_secret: pesapal.consumer_secret, environment: pesapal.environment }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Save failed');
       toast({ title: '✅ PesaPal credentials saved!' });
       setPesapalLoaded(false); // reload to pick up ipn_id after first save
     } catch (err) {
-      toast({ title: 'Save failed', description: err.message, variant: 'destructive' });
+      if (err.message === 'backend_offline') {
+        toast({ title: 'Server offline', description: 'Run: cd server && node server.js', variant: 'destructive' });
+      } else {
+        toast({ title: 'Save failed', description: err.message, variant: 'destructive' });
+      }
     } finally {
       setPesapalSaving(false);
     }
@@ -307,7 +319,7 @@ export default function Settings() {
     }
     setSmtpSaving(true);
     try {
-      const res = await fetch('/api/email/config', {
+      const res = await fetch(buildApiUrl('/api/email/config'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify(smtp),
@@ -331,7 +343,7 @@ export default function Settings() {
   const testSmtp = async () => {
     setSmtpTesting(true);
     try {
-      const res = await fetch('/api/email/test', {
+      const res = await fetch(buildApiUrl('/api/email/test'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
       });

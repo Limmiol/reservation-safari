@@ -21,6 +21,8 @@ import { translate } from '@/lib/translations';
 import CurrencySelect from '@/components/ui/CurrencySelect';
 import ReportDownloadModal from '@/components/ReportDownloadModal';
 import { cn } from '@/lib/utils';
+import { safeJson } from '@/lib/safeJson';
+import { buildApiUrl } from '@/api/localClient';
 import FilterBar from '@/components/FilterBar';
 
 // ── Kanban Board ──────────────────────────────────────────────────────────────
@@ -235,7 +237,7 @@ export default function Bookings() {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ package_id: selectedPkg.id, start_date: val, end_date }),
         });
-        const avData = await avRes.json();
+        const avData = await safeJson(avRes);
         setAvailabilityError(avData.available ? '' : (avData.reason || 'Package not available for these dates'));
       } catch {
         setAvailabilityError('');
@@ -255,7 +257,7 @@ export default function Bookings() {
     if (!b.client_email) { toast({ title: 'No client email', description: 'This booking has no client email address.', variant: 'destructive' }); return; }
     setSendingEmail(b.id);
     try {
-      const res = await fetch('/api/email/send-booking-confirmation', {
+      const res = await fetch(buildApiUrl('/api/email/send-booking-confirmation'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify({
@@ -265,7 +267,7 @@ export default function Bookings() {
           amount_paid: b.amount_paid || 0, booking_source: b.booking_source, special_requests: b.special_requests,
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed to send');
       toast({ title: 'Confirmation sent!', description: `Emailed to ${b.client_email}` });
     } catch (err) {

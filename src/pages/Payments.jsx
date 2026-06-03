@@ -15,6 +15,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
 import { formatCurrency, formatDate, generateRef } from '@/lib/helpers';
+import { safeJson } from '@/lib/safeJson';
+import { buildApiUrl } from '@/api/localClient';
 import CurrencySelect from '@/components/ui/CurrencySelect';
 
 const RESET = { method: 'bank_transfer', status: 'confirmed', currency: 'USD' };
@@ -140,7 +142,7 @@ export default function Payments() {
     }
     setSendingEmail(p.id);
     try {
-      const res = await fetch('/api/email/send-payment-receipt', {
+      const res = await fetch(buildApiUrl('/api/email/send-payment-receipt'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rs_auth_token')}` },
         body: JSON.stringify({
@@ -149,7 +151,7 @@ export default function Payments() {
           method: p.method, invoice_number: p.invoice_number, booking_ref: p.booking_ref, notes: p.notes,
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed to send');
       toast({ title: 'Receipt sent!', description: `Emailed to ${clientEmail}` });
     } catch (err) {

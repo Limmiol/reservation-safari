@@ -18,6 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/components/ui/use-toast';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { formatCurrency, formatDate, generateRef } from '@/lib/helpers';
+import { safeJson } from '@/lib/safeJson';
+import { buildApiUrl } from '@/api/localClient';
 
 export default function BookingDetail() {
   const id = window.location.pathname.split('/').pop();
@@ -187,7 +189,7 @@ export default function BookingDetail() {
     if (!q.client_email) { toast({ title: 'No client email', variant: 'destructive' }); return; }
     setSendingEmail(q.id);
     try {
-      const res = await fetch('/api/email/send-quote', {
+      const res = await fetch(buildApiUrl('/api/email/send-quote'), {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({
           quote_number: q.quote_number, client_name: q.client_name, client_email: q.client_email,
@@ -203,7 +205,7 @@ export default function BookingDetail() {
           notes: q.notes, currency: q.currency || 'USD',
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed');
       toast({ title: 'Quote emailed!', description: `Sent to ${q.client_email}` });
       await base44.entities.Quote.update(q.id, { status: 'sent' });
@@ -217,11 +219,11 @@ export default function BookingDetail() {
     setSendingEmail(inv.id);
     try {
       let parsedItems = []; try { parsedItems = inv.items ? JSON.parse(inv.items) : []; } catch {}
-      const res = await fetch('/api/email/send-invoice', {
+      const res = await fetch(buildApiUrl('/api/email/send-invoice'), {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ invoice_number: inv.invoice_number, client_name: inv.client_name, client_email: inv.client_email, total: inv.total, amount_paid: inv.amount_paid||0, due_date: inv.due_date, booking_ref: inv.booking_ref, notes: inv.notes, items: parsedItems, currency: inv.currency||'USD' }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed');
       toast({ title: 'Invoice emailed!', description: `Sent to ${inv.client_email}` });
       await base44.entities.Invoice.update(inv.id, { status: 'sent' });
@@ -235,11 +237,11 @@ export default function BookingDetail() {
     if (!clientEmail) { toast({ title: 'No client email', variant: 'destructive' }); return; }
     setSendingEmail(p.id);
     try {
-      const res = await fetch('/api/email/send-payment-receipt', {
+      const res = await fetch(buildApiUrl('/api/email/send-payment-receipt'), {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ payment_ref: p.payment_ref, client_name: p.client_name, client_email: clientEmail, amount: p.amount, currency: p.currency||'USD', payment_date: p.payment_date, method: p.method, invoice_number: p.invoice_number, booking_ref: p.booking_ref, notes: p.notes }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed');
       toast({ title: 'Receipt emailed!', description: `Sent to ${clientEmail}` });
     } catch (err) { toast({ title: 'Send failed', description: err.message, variant: 'destructive' }); }
@@ -250,11 +252,11 @@ export default function BookingDetail() {
     if (!booking.client_email) { toast({ title: 'No client email', variant: 'destructive' }); return; }
     setSendingEmail('booking');
     try {
-      const res = await fetch('/api/email/send-booking-confirmation', {
+      const res = await fetch(buildApiUrl('/api/email/send-booking-confirmation'), {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ booking_ref: booking.booking_ref, client_name: booking.client_name, client_email: booking.client_email, package_name: booking.package_name, start_date: booking.start_date, end_date: booking.end_date, num_guests: booking.num_guests, total_amount: booking.total_amount, currency: booking.currency||'USD', amount_paid: booking.amount_paid||0, booking_source: booking.booking_source, special_requests: booking.special_requests }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || 'Failed');
       toast({ title: 'Confirmation emailed!', description: `Sent to ${booking.client_email}` });
     } catch (err) { toast({ title: 'Send failed', description: err.message, variant: 'destructive' }); }

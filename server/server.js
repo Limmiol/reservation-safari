@@ -809,21 +809,36 @@ app.get('/api/email/config', auth, (req, res) => {
 
 // Save SMTP config (now includes company info + logo + payment link)
 app.post('/api/email/config', auth, (req, res) => {
-  const { host, port, user, pass, sender_name, company_email, company_phone, company_address, logo_url, accent_color, payment_link } = req.body;
-  if (!host || !user || !pass) return res.status(400).json({ error: 'host, user, and pass are required' });
-  const existing = emailService.loadConfig() || {};
-  emailService.saveConfig({
-    ...existing,
-    host, port: port || 587, user, pass,
-    sender_name:     sender_name     || 'Reservation Safari',
-    company_email:   company_email   || '',
-    company_phone:   company_phone   || '',
-    company_address: company_address || '',
-    logo_url:        logo_url        || '',
-    accent_color:    accent_color    || '#16a34a',
-    payment_link:    payment_link    || '',
-  });
-  res.json({ success: true });
+  try {
+    // If SMTP is provided via environment variables (e.g., on Render), do not allow saving via file
+    if (process.env.EMAIL_HOST) {
+      return res.status(400).json({ error: 'Email is configured via environment variables. Update the service environment variables instead of saving here.' });
+    }
+
+    const { host, port, user, pass, sender_name, company_email, company_phone, company_address, logo_url, accent_color, payment_link } = req.body;
+    if (!host || !user || !pass) return res.status(400).json({ error: 'host, user, and pass are required' });
+    const existing = emailService.loadConfig() || {};
+    try {
+      emailService.saveConfig({
+        ...existing,
+        host, port: port || 587, user, pass,
+        sender_name:     sender_name     || 'Reservation Safari',
+        company_email:   company_email   || '',
+        company_phone:   company_phone   || '',
+        company_address: company_address || '',
+        logo_url:        logo_url        || '',
+        accent_color:    accent_color    || '#16a34a',
+        payment_link:    payment_link    || '',
+      });
+    } catch (err) {
+      console.error('[server] Failed to save email config:', err && err.message ? err.message : err);
+      return res.status(500).json({ error: 'Failed to save email configuration: ' + (err && err.message ? err.message : 'unknown') });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[server] /api/email/config error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
 });
 
 // Send test email to logged-in admin
