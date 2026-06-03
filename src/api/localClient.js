@@ -1,4 +1,7 @@
 const TOKEN_KEY = 'rs_auth_token';
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+
+const buildApiUrl = (path) => API_BASE_URL ? `${API_BASE_URL}${path}` : path;
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
@@ -6,7 +9,8 @@ export const removeToken = () => localStorage.removeItem(TOKEN_KEY);
 
 async function apiFetch(path, options = {}) {
   const token = getToken();
-  const res = await fetch(`/api${path}`, {
+  const url = buildApiUrl(`/api${path}`);
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -134,7 +138,7 @@ export const localClient = {
         const token = getToken();
         const formData = new FormData();
         formData.append('file', file);
-        const res = await fetch('/api/upload', {
+        const res = await fetch(buildApiUrl('/api/upload'), {
           method: 'POST',
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           body: formData,
