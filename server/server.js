@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -172,6 +173,23 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
+function enforceAgentSource(name, data, user, existing = {}) {
+  if (!user || user.role !== 'agent') return data;
+  const owner = user.full_name || user.email || 'Agent';
+  const patched = { ...data };
+
+  if (name === 'Booking') {
+    patched.booking_source = 'agent';
+    patched.agent_name = patched.agent_name || existing.agent_name || owner;
+  }
+  if (name === 'Client') {
+    patched.client_source = 'agent';
+    patched.agent_name = patched.agent_name || existing.agent_name || owner;
+  }
+
+  return patched;
+}
+
 // ─── Auth Routes ──────────────────────────────────────────────────────────────
 app.post('/api/auth/register', authRateLimit, (req, res) => {
   const { email, password, full_name = '', role = 'admin' } = req.body;
@@ -248,8 +266,9 @@ app.post('/api/entities/:name/filter', auth, (req, res) => {
 app.post('/api/entities/:name', auth, (req, res) => {
   const { id: _id, created_date, updated_date, created_by, ...data } = req.body;
   const now = new Date().toISOString();
+  const payload = enforceAgentSource(req.params.name, data, req.user);
   const record = entity.create(req.params.name, {
-    ...data,
+    ...payload,
     id: uuidv4(),
     created_date: now,
     updated_date: now,
@@ -265,7 +284,8 @@ app.put('/api/entities/:name/:id', auth, (req, res) => {
   const now = new Date().toISOString();
   const existing = entity.findById(req.params.name, req.params.id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
-  const updated = entity.update(req.params.name, req.params.id, { ...data, updated_date: now });
+  const payload = enforceAgentSource(req.params.name, data, req.user, existing);
+  const updated = entity.update(req.params.name, req.params.id, { ...payload, updated_date: now });
   res.json(updated);
   // Fire automation triggers asynchronously
   automations.dispatchUpdate(req.params.name, updated, existing);
@@ -1465,8 +1485,13 @@ app.get('/api/bookings/:id/qr', auth, async (req, res) => {
   if (!b) return res.status(404).json({ error: 'Booking not found' });
   const token = ensureScanToken(b);
   const payload = JSON.stringify({ ref: b.booking_ref, t: token });
+
   try {
-    const qr_data_url = await QRCode.toDataURL(payload, { margin: 1, width: 320 });
+    let qr_data_url = b.qr_data_url;
+    if (!qr_data_url) {
+      qr_data_url = await QRCode.toDataURL(payload, { margin: 1, width: 280, errorCorrectionLevel: 'L' });
+      entity.update('Booking', b.id, { qr_data_url });
+    }
     res.json({ qr_data_url, payload, booking_ref: b.booking_ref });
   } catch (err) {
     res.status(500).json({ error: err.message });
